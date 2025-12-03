@@ -4,62 +4,55 @@ module Year2025
   class Day02 < Solution
     def part_1
       # for each number in range, split in half, compare two halves
-      total = 0
+      parse_ranges.sum do |start, finish|
+        (start..finish).sum do |num|
+          value = num.to_s
+          next 0 if value.length.odd?
+          next num if value.start_with?('0')
 
-      data.split(',').each do |range|
-        start, finish = range.split('-')
-
-        (start..finish).each do |value|
-          next if value.length.odd?
-
-          if value[0] == '0'
-            total += value.to_i
-            next
-          end
-
-          half_point = value.length / 2
-
-          a = value[0, half_point]
-          b = value[half_point, half_point]
-
-          total += value.to_i if a == b
+          palindromic_halves?(value) ? num : 0
         end
       end
-      total
     end
 
     def part_2
       # could probably bruteforce with loops -> o^3?
       # need to find repeating segments instead of halves?
 
-      total = 0
-
-      data.split(',').each do |range|
-        start, finish = range.split('-').map(&:to_i)
-
-        (start..finish).each do |num|
+      parse_ranges.sum do |start, finish|
+        (start..finish).sum do |num|
           value = num.to_s
-          if value[0] == '0'
-            total += num
-            next
-          end
+          next num if value.start_with?('0')
 
-          length = value.length
-
-          (1...length).each do |i|
-            next unless length % i == 0
-
-            segment = value[0, i]
-            repeat_count = length / i
-
-            if (segment * repeat_count) == value
-              total += num
-              break
-            end
-          end
+          repeating_pattern?(value) ? num : 0
         end
       end
-      total
+    end
+
+    private
+
+    def parse_ranges
+      data.split(',').map { |range| range.split('-').map(&:to_i) }
+    end
+
+    def palindromic_halves?(value)
+      half = value.length / 2
+      left_half = value[0, half]
+      right_half = value[half..]
+
+      left_half == right_half
+    end
+
+    def repeating_pattern?(value)
+      length = value.length
+      (1...length).any? do |segment_length|
+        next unless (length % segment_length).zero?
+
+        segment = value[0, segment_length]
+        repeat_count = length / segment_length
+
+        (segment * repeat_count) == value
+      end
     end
   end
 end
