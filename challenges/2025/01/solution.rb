@@ -1,50 +1,60 @@
 # frozen_string_literal: true
 
 module Year2025
+  DIAL_SIZE = 100
+  STARTING_POSITION = 50
+  DIRECTION_MULTIPLIER = { 'L' => -1, 'R' => 1 }.freeze
+
   class Day01 < Solution
     def part_1
-      value = 50
+      position = STARTING_POSITION
       zero_count = 0
+
       data.each do |turn|
-        direction = turn[0]
-        distance = turn[1..-1].to_i
+        direction, distance = parse_turn(turn)
 
-        movement = (direction == 'L' ? -distance : distance)
+        movement = distance * DIRECTION_MULTIPLIER[direction]
 
-        value += movement
-        value %= 100
+        position += movement
+        position %= DIAL_SIZE
 
-        zero_count += 1 if value == 0
+        zero_count += 1 if position.zero?
       end
       zero_count
     end
 
     def part_2
-      value = 50
+      position = STARTING_POSITION
       zero_crossings = 0
+
       data.each do |turn|
-        direction = turn[0]
-        distance = turn[1..-1].to_i
+        direction, distance = parse_turn(turn)
 
-        movement = (direction == 'L' ? -distance : distance)
-        new_value = value + movement
+        movement = distance * DIRECTION_MULTIPLIER[direction]
+        new_position = position + movement
 
-        crossings = count_zero_crossings(value, new_value, direction)
+        crossings = count_zero_crossings(position, new_position, direction)
 
         zero_crossings += crossings
-        value = new_value % 100
+        position = new_position % DIAL_SIZE
       end
       zero_crossings
     end
 
     private
 
-    def count_zero_crossings(start, finish, direction)
+    def parse_turn(turn)
+      direction = turn[0]
+      distance = turn[1..].to_i
+      [direction, distance]
+    end
+
+    def count_zero_crossings(start_position, finish_position, direction)
       if direction == 'R'
-        finish / 100
+        finish_position / DIAL_SIZE
       else
-        start_segment = (start.to_f / 100.0).ceil
-        end_segment = (finish.to_f / 100.0).ceil
+        start_segment = (start_position.to_f / DIAL_SIZE).ceil
+        end_segment = (finish_position.to_f / DIAL_SIZE).ceil
         (start_segment - end_segment).abs
       end
     end
